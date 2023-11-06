@@ -5,6 +5,7 @@ import { Data } from "./data";
 export class ArmyManager {
     static #armies = {};
     static nextId = 0;
+    static debug = true;
 
     static addArmy(armyData) {
         this.#armies[this.nextId++] = {
@@ -63,8 +64,12 @@ export class ArmyManager {
                 armyData.destroyed = units.length <= 0;
             }
 
-            armyData.army.strategy(units, armyData.army.state, armyData.completed);
-            console.log("Army:", id, armyData.army.state);
+            const metaData = { completed: armyData.completed, destroyed: armyData.destroyed, created: armyData.created, max: armyData.army.armySize(), alive: units.length };
+            // Shallow copy of metaData because of following printDebug function
+            armyData.army.strategy(units, armyData.army.state, { ...metaData });
+            if (this.debug) {
+                this.#printDebug(id, armyData.army.state, metaData);
+            }
         }
     }
 
@@ -98,5 +103,18 @@ export class ArmyManager {
             }
         }
         return undefined;
+    }
+
+    static #printDebug(id, state, metaData) {
+        let metaMessage = "";
+        if (metaData.destroyed) {
+            metaMessage += "destroyed";
+        } else {
+            metaMessage += metaData.alive + "/" + metaData.max;
+            if (metaData.created < metaData.max) {
+                metaMessage += " [" + (metaData.max - metaData.created) + " spawning]";
+            }
+        }
+        console.log(id + ":", metaMessage, state);
     }
 }

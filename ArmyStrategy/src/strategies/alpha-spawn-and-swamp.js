@@ -38,7 +38,7 @@ export class AlphaSpawnAndSwamp {
         }
     }
 
-    energyStrategy(creeps, state, armyComplete) {
+    energyStrategy(creeps, state, metaData) {
         creeps.forEach(creep => {
             if (creep.store.getFreeCapacity(constants.RESOURCE_ENERGY) > 0) {
                 if (creep["bodyPartCount"](constants.WORK)) {
@@ -60,7 +60,7 @@ export class AlphaSpawnAndSwamp {
                     }
                 }
             }
-            
+
             if (creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) > 0) {
                 const spawn = GameManager.mySpawn;
                 if (spawn && creep.transfer(spawn, constants.RESOURCE_ENERGY) !== constants.OK) {
@@ -73,8 +73,8 @@ export class AlphaSpawnAndSwamp {
         });
     }
 
-    meleeStrategy(creeps, state, armyComplete) {
-        if (!state.assaultMode && armyComplete) {
+    meleeStrategy(creeps, state, metaData) {
+        if (!state.assaultMode && metaData.completed) {
             let distance = 0;
             let maxDistance = 0;
             for (let creep of creeps) {

@@ -21,6 +21,7 @@ export class ArmyManager {
     }
 
     static spawn() {
+        // TODO support multiple spawn strcutures
         const spawn = GameManager.mySpawn;
         if (spawn && !spawn.spawning) {
             let missingBody;

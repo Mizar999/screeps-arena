@@ -72,8 +72,8 @@ export class ArmyManager {
                 let int;
                 Object.keys(armyData.army.state).forEach(key => {
                     int = parseInt(key);
-                    if (int !== Number.NaN && !unitIds.some(int)) {
-                        delete armyData.army.state[id];
+                    if (!isNaN(int) && !unitIds.includes(int)) {
+                        delete armyData.army.state[key];
                     }
                 });
             }

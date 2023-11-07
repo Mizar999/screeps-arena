@@ -67,7 +67,7 @@ export class ArmyManager {
                 armyData.destroyed = units.length <= 0;
             }
 
-            if (!armyData.destroyed) {
+            if (units.length && !armyData.destroyed) {
                 const unitIds = units.map(unit => unit.id);
                 let int;
                 Object.keys(armyData.army.state).forEach(key => {

@@ -1,5 +1,6 @@
 import * as utils from "game/utils";
 import * as prototypes from "game/prototypes";
+import { RESOURCE_ENERGY } from "game/constants";
 
 export class GameManager {
     static myCreeps;
@@ -7,11 +8,16 @@ export class GameManager {
     static mySpawn;
     static enemies;
     static enemySpawn;
+    static containes;
+    static sources;
 
     static updateCache() {
         this.myCreeps = [];
         this.myDamagedCreeps = [];
         this.enemies = [];
+        this.containers = [];
+        this.sources = [];
+
         utils.getObjectsByPrototype(prototypes.Creep).forEach(creep => {
             if (creep.my) {
                 this.myCreeps.push(creep);
@@ -22,6 +28,9 @@ export class GameManager {
                 this.enemies.push(creep);
             }
         });
+
+        this.containers = utils.getObjectsByPrototype(prototypes.StructureContainer).filter(container => container.store.getUsedCapacity(RESOURCE_ENERGY) > 0);
+        this.sources = utils.getObjectsByPrototype(prototypes.Source).filter(source => source.energy > 0);
 
         utils.getObjectsByPrototype(prototypes.StructureSpawn).forEach(spawn => {
             if (spawn.my) {

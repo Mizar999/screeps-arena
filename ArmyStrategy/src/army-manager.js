@@ -4,16 +4,18 @@ import { Data } from "./data";
 
 export class ArmyManager {
     static #armies = {};
-    static nextId = 0;
+    static #nextId = 0;
     static debug = true;
 
     static addArmy(armyData) {
-        this.#armies[this.nextId++] = {
+        const id = this.#nextId++;
+        this.#armies[id] = {
             army: new Army(armyData),
             created: 0,
             completed: false,
             destroyed: false
         };
+        return id;
     }
 
     static addCreepsAsArmy() {
@@ -89,6 +91,10 @@ export class ArmyManager {
 
     static get armyCount() {
         return Object.keys(this.#armies).length;
+    }
+
+    static armyExists(id) {
+        return id in this.#armies;
     }
 
     static #getMissingBody(id) {

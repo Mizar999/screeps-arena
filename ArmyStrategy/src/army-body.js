@@ -1,6 +1,6 @@
-export class ArmyBody {
-    constructor(count, parts) {
-        this.count = count === undefined ? 0 : count;
+export class Unit {
+    constructor(parts, stateMachine) {
         this.parts = parts || [];
+        this.stateMachine = stateMachine || {}
     }
 }

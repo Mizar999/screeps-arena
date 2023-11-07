@@ -1,7 +1,6 @@
 import * as utils from "game/utils";
 import * as prototypes from "game/prototypes";
 import * as constants from "game/constants";
-import { Data } from "./data";
 
 prototypes.Creep.prototype["bodyPartCount"] = function (type) {
     let count = 0;

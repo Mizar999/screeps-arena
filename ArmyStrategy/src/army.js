@@ -1,8 +1,8 @@
-import { ArmyBody } from "./army-body";
+import { Unit } from "./army-body";
 
 export class Army {
     constructor(data) {
-        /** @type {ArmyBody[]} */ this.armyBodies = data.armyBodies || []
+        /** @type {Unit[]} */ this.armyBodies = data.armyBodies || []
         this.state = data.state || {};
         this.strategy = data.strategy || undefined;
     }

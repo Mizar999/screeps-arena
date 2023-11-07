@@ -4,7 +4,7 @@ import * as constants from "game/constants";
 import { GameManager } from "../game-manager";
 import { ArmyManager } from "../army-manager";
 import { Army } from "../army";
-import { ArmyBody } from "../army-body";
+import { Unit } from "../army-body";
 import { } from "../creep-extension";
 
 export class AlphaSpawnAndSwamp {
@@ -18,7 +18,7 @@ export class AlphaSpawnAndSwamp {
         if (!this.withDrawerCreated) {
             ArmyManager.addArmy(new Army({
                 armyBodies: [
-                    new ArmyBody(1, this.withdrawer)
+                    new Unit(1, this.withdrawer)
                 ],
                 strategy: this.energyStrategy
             }));
@@ -29,7 +29,7 @@ export class AlphaSpawnAndSwamp {
         while (ArmyManager.armyCount < 5) {
             ArmyManager.addArmy(new Army({
                 armyBodies: [
-                    new ArmyBody(4, this.melee)
+                    new Unit(4, this.melee)
                 ],
                 state: { idlePosition: { x: spawn.x, y: spawn.y + this.spawnOffsetY[this.spawnOffsetIndex] } },
                 strategy: this.meleeStrategy

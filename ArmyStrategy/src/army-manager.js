@@ -67,6 +67,17 @@ export class ArmyManager {
                 armyData.destroyed = units.length <= 0;
             }
 
+            if (!armyData.destroyed) {
+                const unitIds = units.map(unit => unit.id);
+                let int;
+                Object.keys(armyData.army.state).forEach(key => {
+                    int = parseInt(key);
+                    if (int !== Number.NaN && !unitIds.some(int)) {
+                        delete armyData.army.state[id];
+                    }
+                });
+            }
+
             const metaData = { completed: armyData.completed, destroyed: armyData.destroyed, created: armyData.created, max: armyData.army.armySize(), alive: units.length };
             // Shallow copy of metaData because of following printDebug function
             armyData.army.strategy(units, armyData.army.state, { ...metaData });

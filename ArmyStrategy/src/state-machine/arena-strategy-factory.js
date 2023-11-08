@@ -1,5 +1,6 @@
 import * as game from "game";
 import { StateMachine } from "./state-machine";
+import { AlphaSpawnAndSwamp } from "./arena/alpha-spawn-and-swamp";
 
 export class ArenaStrategyFactory {
     /**
@@ -12,14 +13,14 @@ export class ArenaStrategyFactory {
             console.log(arenaName);
 
             switch (arenaName) {
-                // TODO implement me
                 case "Spawn and Swamp":
-                    break;
+                    return new AlphaSpawnAndSwamp();
             }
         } catch (e) {
             console.log(e);
         }
-        // TODO Implement default strategy
-        return undefined;
+
+        // TODO Implement a default state machine strategy
+        return new AlphaSpawnAndSwamp();
     }
 }

@@ -14,3 +14,10 @@ export class StateMachine {
         }
     }
 }
+
+class StateMachineUnit extends StateMachine {
+    constructor(states, startState, parts = [], context = {}) {
+        super(states, startState, context);
+        this.parts = parts;
+    }
+}

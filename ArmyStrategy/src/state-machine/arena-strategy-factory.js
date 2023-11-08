@@ -1,21 +1,25 @@
 import * as game from "game";
-import { AlphaSpawnAndSwamp } from "./alpha-spawn-and-swamp";
+import { StateMachine } from "./state-machine";
 
-export class StrategyManager {
-    static getStrategy() {
+export class ArenaStrategyFactory {
+    /**
+     * @return {StateMachine}
+     */
+    static getStateMachine() {
         try {
             //@ts-ignore
             const arenaName = game.arenaInfo.name;
             console.log(arenaName);
 
             switch (arenaName) {
+                // TODO implement me
                 case "Spawn and Swamp":
-                    return new AlphaSpawnAndSwamp();
+                    break;
             }
         } catch (e) {
             console.log(e);
         }
         // TODO Implement default strategy
-        return new AlphaSpawnAndSwamp();
+        return undefined;
     }
 }

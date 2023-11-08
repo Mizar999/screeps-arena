@@ -1,11 +1,11 @@
 import * as utils from "game/utils";
 import * as prototypes from "game/prototypes";
 import * as constants from "game/constants";
-import { GameManager } from "../game-manager";
-import { ArmyManager } from "../army-manager";
-import { Army } from "../army";
-import { Unit } from "../army-body";
-import { } from "../creep-extension";
+import { GameManager } from "../utility/game-manager";
+import { ArmyManager } from "../utility/army-manager";
+// import { Army } from "../army";
+// import { Unit } from "../army-body";
+import { } from "../utility/creep-extension";
 
 export class AlphaSpawnAndSwamp {
     withDrawerCreated = false;
@@ -16,24 +16,24 @@ export class AlphaSpawnAndSwamp {
 
     createArmy() {
         if (!this.withDrawerCreated) {
-            ArmyManager.addArmy(new Army({
-                armyBodies: [
-                    new Unit(1, this.withdrawer)
-                ],
-                strategy: this.energyStrategy
-            }));
+            // ArmyManager.addArmy(new Army({
+            //     armyBodies: [
+            //         new Unit(1, this.withdrawer)
+            //     ],
+            //     strategy: this.energyStrategy
+            // }));
             this.withDrawerCreated = true;
         }
 
         const spawn = utils.getObjectsByPrototype(prototypes.StructureSpawn).find(sp => sp.my);
         while (ArmyManager.armyCount < 5) {
-            ArmyManager.addArmy(new Army({
-                armyBodies: [
-                    new Unit(4, this.melee)
-                ],
-                state: { idlePosition: { x: spawn.x, y: spawn.y + this.spawnOffsetY[this.spawnOffsetIndex] } },
-                strategy: this.meleeStrategy
-            }));
+            // ArmyManager.addArmy(new Army({
+            //     armyBodies: [
+            //         new Unit(4, this.melee)
+            //     ],
+            //     state: { idlePosition: { x: spawn.x, y: spawn.y + this.spawnOffsetY[this.spawnOffsetIndex] } },
+            //     strategy: this.meleeStrategy
+            // }));
             this.spawnOffsetIndex = (this.spawnOffsetIndex + 1) % this.spawnOffsetY.length;
         }
     }

@@ -3,7 +3,7 @@ import * as prototypes from "game/prototypes";
 import { RESOURCE_ENERGY } from "game/constants";
 
 export class GameManager {
-    static myCreeps;
+    /** @type {prototypes.Creep[]} */ static myCreeps;
     static myDamagedCreeps;
     static mySpawn;
     static enemies;

@@ -1,12 +1,19 @@
 import { GameManager } from "./game-manager";
+import { StateMachineUnit } from "../state-machine/state-machine-unit";
 import { } from "./creep-extension";
+import * as prototypes from "game/prototypes";
 
 export class ArmyManager {
+    /** @type {Object.<number, {units: StateMachineUnit[], max: number, created: number, completed: boolean, destroyed: boolean}>} */
     static #armies = {};
     static #nextId = 0;
     static debug = true;
 
-    static addArmy(units = []) {
+    /**
+     * @param {StateMachineUnit[]} units All units that form an army
+     * @returns {number} New army identifier
+     */
+    static addArmy(units) {
         const id = this.#nextId++;
         this.#armies[id] = {
             units: units,
@@ -22,15 +29,18 @@ export class ArmyManager {
         // TODO add already existing creeps to an army
     }
 
+    /**
+     * @returns {void}
+     */
     static spawn() {
-        // TODO support multiple spawn strcutures
+        // TODO support multiple spawn structures
         const spawn = GameManager.mySpawn;
         if (spawn && !spawn.spawning) {
             for (let id of Object.keys(this.#armies).filter(id => !this.#armies[id].units.length)) {
                 const units = this.#armies[id].units;
                 const creep = spawn.spawnCreep(units[0].parts).object;
                 if (creep) {
-                    creep["data"] = { army: id, stateMachine: units.shift().stateMachine };
+                    creep["data"] = { army: id, stateMachine: units.shift() };
                     this.#armies[id].armyData.created++;
                 }
                 return;
@@ -40,8 +50,8 @@ export class ArmyManager {
 
     static applyStrategies() {
         const creeps = GameManager.myCreeps;
-        let tempUnits;
-        let isSpawning;
+        let /** @type {prototypes.Creep[]} */ tempUnits;
+        let /** @type {boolean} */ isSpawning;
         for (let id of Object.keys(this.#armies)) {
             isSpawning = false;
             tempUnits = creeps.reduce((prev, curr) => {
@@ -76,7 +86,7 @@ export class ArmyManager {
             // }
 
             const metaData = { completed: armyData.completed, destroyed: armyData.destroyed, created: armyData.created, max: armyData.max, alive: tempUnits.length, units: tempUnits };
-            tempUnits.forEach(unit => unit["data"].stateMachine.update(metaData));
+            tempUnits.forEach(unit => unit["data"].update(metaData));
             if (this.debug) {
                 // this.#printDebug(id, armyData.army.state, metaData); // TODO repair
             }
@@ -100,6 +110,10 @@ export class ArmyManager {
         return Object.keys(this.#armies).length;
     }
 
+    /**
+     * @param {number} id 
+     * @returns {boolean}
+     */
     static armyExists(id) {
         return id in this.#armies;
     }

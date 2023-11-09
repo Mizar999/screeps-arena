@@ -31,7 +31,9 @@ export class StateMachine {
             console.log("starting", this.constructor.name, "in state", initialState);
         }
         this.#currentState = this.#states[initialState];
-        this.#currentState.enter();
+        if (typeof this.#currentState.enter === "function") {
+            this.#currentState.enter();
+        }
     }
 
     /**

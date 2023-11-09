@@ -17,10 +17,10 @@ export class StateMachine {
     }
 
     /**
-     * @param {State|State[]} states An object representing a state or an array of states
+     * @param {(State | State[])} states An object representing a state or an array of states
      */
     addStates(states) {
-        if(states.constructor === "Array") {
+        if (Array.isArray(states)) {
             states.forEach(state => this.#states[state.name] = state);
         } else {
             this.#states[states.name] = states;

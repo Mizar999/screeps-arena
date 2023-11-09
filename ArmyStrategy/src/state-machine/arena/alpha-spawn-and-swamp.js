@@ -50,7 +50,7 @@ export class Withdrawer extends StateMachineUnit {
 
     constructor() {
         super([constants.MOVE, constants.CARRY]);
-        this.addStates(this.#states));
+        this.addStates(this.#states);
         this.start(Withdrawer.#stateName.IDLE);
     }
 }

@@ -1,4 +1,4 @@
-const { StateMachine } = require("./state-machine");
+import { StateMachine } from "./state-machine";
 
 export class StateMachineUnit extends StateMachine {
     constructor(parts = []) {

@@ -36,12 +36,12 @@ export class ArmyManager {
         // TODO support multiple spawn structures
         const spawn = GameManager.mySpawn;
         if (spawn && !spawn.spawning) {
-            for (let id of Object.keys(this.#armies).filter(id => !this.#armies[id].unitsToSpawn.length)) {
+            for (let id of Object.keys(this.#armies).filter(id => this.#armies[id].unitsToSpawn.length > 0)) {
                 const unitsToSpawn = this.#armies[id].unitsToSpawn;
                 const creep = spawn.spawnCreep(unitsToSpawn[0].parts).object;
                 if (creep) {
                     creep["data"] = { army: id, stateMachine: unitsToSpawn.shift() };
-                    this.#armies[id].armyData.created++;
+                    this.#armies[id].created++;
                 }
                 return;
             }
@@ -67,7 +67,7 @@ export class ArmyManager {
 
             const armyData = this.#armies[id];
             if (!armyData.completed && !isSpawning) {
-                armyData.completed = armyData.units.length === 0;
+                armyData.completed = armyData.unitsToSpawn.length === 0;
             }
             if (armyData.completed) {
                 armyData.destroyed = tempUnits.length <= 0;
@@ -85,8 +85,11 @@ export class ArmyManager {
             //     });
             // }
 
-            const metaData = { completed: armyData.completed, destroyed: armyData.destroyed, created: armyData.created, max: armyData.max, alive: tempUnits.length, units: tempUnits };
-            tempUnits.forEach(unit => unit["data"].update(metaData));
+            const metaData = { creep: undefined, armyCreeps: tempUnits, completed: armyData.completed, destroyed: armyData.destroyed, created: armyData.created, max: armyData.max, alive: tempUnits.length };
+            tempUnits.forEach(unit => {
+                metaData.creep = unit;
+                unit["data"].stateMachine.update(metaData)
+            });
             if (this.debug) {
                 // this.#printDebug(id, armyData.army.state, metaData); // TODO repair
             }
@@ -117,34 +120,4 @@ export class ArmyManager {
     static armyExists(id) {
         return id in this.#armies;
     }
-
-    // TODO remove me
-    // static #getMissingBody(id) {
-    //     const armyData = this.#armies[id];
-    //     const units = GameManager.myCreeps.filter(creep => creep["data"].army === id);
-    //     if (units.length < armyData.army.armySize()) {
-    //         let unitCount = 0;
-    //         for (let armyBody of armyData.army.armyBodies) {
-    //             unitCount += armyBody.count;
-    //             if (armyData.created < unitCount) {
-    //                 return armyBody.parts;
-    //             }
-    //         }
-    //     }
-    //     return undefined;
-    // }
-
-    // TODO no need for repair
-    // static #printDebug(id, state, metaData) {
-    //     let metaMessage = "";
-    //     if (metaData.destroyed) {
-    //         metaMessage += "destroyed";
-    //     } else {
-    //         metaMessage += metaData.alive + "/" + metaData.max;
-    //         if (metaData.created < metaData.max) {
-    //             metaMessage += " [" + (metaData.max - metaData.created) + " spawning]";
-    //         }
-    //     }
-    //     console.log(id + ":", metaMessage, state);
-    // }
 }

@@ -8,25 +8,27 @@ import { StateMachine } from "../state-machine";
 import { StateMachineUnit } from "../state-machine-unit";
 
 export class AlphaSpawnAndSwamp extends StateMachine {
-    static #stateName = { IDLE: "idle", SPAWNING: "spawning" };
+    static #stateName = {
+        SPAWN_ENERGY_COLLECTOR: "spawnEnergyCollector",
+        IDLE: "idle",
+    };
     #states = [
         {
-            name: AlphaSpawnAndSwamp.#stateName.IDLE,
-            update: (context) => { },
-            transitions: [
-                { nextState: AlphaSpawnAndSwamp.#stateName.SPAWNING, condition: () => ArmyManager.armyCount < 3 }
-            ]
-        },
-        {
-            name: AlphaSpawnAndSwamp.#stateName.SPAWNING,
+            name: AlphaSpawnAndSwamp.#stateName.SPAWN_ENERGY_COLLECTOR,
             update: (context) => {
                 ArmyManager.addArmy([
-                    new Withdrawer(),
                     new Withdrawer(),
                 ]);
             },
             transitions: [
-                { nextState: AlphaSpawnAndSwamp.#stateName.IDLE, condition: () => ArmyManager.armyCount > 3 }
+                { nextState: AlphaSpawnAndSwamp.#stateName.IDLE, condition: () => ArmyManager.armyCount >= 1 }
+            ]
+        },
+        {
+            name: AlphaSpawnAndSwamp.#stateName.IDLE,
+            update: (context) => { },
+            transitions: [
+                { nextState: AlphaSpawnAndSwamp.#stateName.SPAWN_ENERGY_COLLECTOR, condition: () => ArmyManager.armyCount < 1 }
             ]
         },
     ];
@@ -34,22 +36,68 @@ export class AlphaSpawnAndSwamp extends StateMachine {
     constructor() {
         super();
         this.addStates(this.#states);
-        this.start(AlphaSpawnAndSwamp.#stateName.IDLE);
+        this.start(AlphaSpawnAndSwamp.#stateName.SPAWN_ENERGY_COLLECTOR);
     }
 }
 
 export class Withdrawer extends StateMachineUnit {
-    static #stateName = { IDLE: "idle" };
+    /** @type {prototypes.Creep} */ #creep;
+    /** @type {prototypes.StructureContainer} */ #targetContainer;
+
+    static #stateName = {
+        IDLE: "idle",
+        COLLECT_ENERGY: "collectEnergy",
+        TRANSFER_ENERGY: "transferEnergy",
+    };
+
     #states = [
         {
             name: Withdrawer.#stateName.IDLE,
-            update: (context) => { },
-            transitions: []
-        }
+            update: (context) => {
+                this.#creep = context.creep;
+                this.#targetContainer = utils.findClosestByPath(GameManager.mySpawn, GameManager.containers, { maxCost: 50 });
+            },
+            transitions: [
+                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => this.#targetContainer && this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 }
+            ]
+        },
+        {
+            name: Withdrawer.#stateName.COLLECT_ENERGY,
+            update: (context) => {
+                this.#creep = context.creep;
+                if (this.#creep && this.#targetContainer) {
+                    if (this.#creep.withdraw(this.#targetContainer, constants.RESOURCE_ENERGY) !== constants.OK) {
+                        this.#creep.moveTo(this.#targetContainer);
+                    }
+                }
+            },
+            exit: () => {
+                this.#targetContainer = undefined;
+            },
+            transitions: [
+                { nextState: Withdrawer.#stateName.TRANSFER_ENERGY, condition: () => this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) > 0 },
+                { nextState: Withdrawer.#stateName.IDLE, condition: () => !this.#targetContainer },
+            ]
+        },
+        {
+            name: Withdrawer.#stateName.TRANSFER_ENERGY,
+            update: (context) => {
+                this.#creep = context.creep;
+                const spawn = GameManager.mySpawn;
+                if (this.#creep && spawn) {
+                    if (this.#creep.transfer(spawn, constants.RESOURCE_ENERGY) !== constants.OK) {
+                        this.#creep.moveTo(spawn);
+                    }
+                }
+            },
+            transitions: [
+                { nextState: Withdrawer.#stateName.IDLE, condition: () => !GameManager.mySpawn || this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 },
+            ]
+        },
     ];
 
     constructor() {
-        super([constants.MOVE, constants.CARRY]);
+        super([constants.MOVE, constants.MOVE, constants.MOVE, constants.CARRY, constants.CARRY, constants.CARRY]);
         this.addStates(this.#states);
         this.start(Withdrawer.#stateName.IDLE);
     }

@@ -33,7 +33,7 @@ export class AlphaSpawnAndSwamp extends StateMachine {
 
     constructor() {
         super();
-        this.#states.forEach(state => this.addState(state));
+        this.addStates(this.#states);
         this.start(AlphaSpawnAndSwamp.#stateName.IDLE);
     }
 }
@@ -50,7 +50,7 @@ export class Withdrawer extends StateMachineUnit {
 
     constructor() {
         super([constants.MOVE, constants.CARRY]);
-        this.#states.forEach(state => this.addState(state));
+        this.addStates(this.#states));
         this.start(Withdrawer.#stateName.IDLE);
     }
 }

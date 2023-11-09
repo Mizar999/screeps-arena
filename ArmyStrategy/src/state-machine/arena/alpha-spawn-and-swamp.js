@@ -8,17 +8,23 @@ import { StateMachine } from "../state-machine";
 import { StateMachineUnit } from "../state-machine-unit";
 
 export class AlphaSpawnAndSwamp extends StateMachine {
+    static #stateName = { IDLE: "idle", SPAWNING: "spawning" };
     #states = {
-        "idle": {
+        [AlphaSpawnAndSwamp.#stateName.IDLE]: {
             update: (context) => { },
             transitions: [
-                { nextState: "spawning", condition: () => ArmyManager.armyCount < 3 }
+                { nextState: AlphaSpawnAndSwamp.#stateName.SPAWNING, condition: () => ArmyManager.armyCount < 3 }
             ]
         },
-        "spawning": {
-            update: (context) => { },
+        [AlphaSpawnAndSwamp.#stateName.SPAWNING]: {
+            update: (context) => {
+                ArmyManager.addArmy([
+                    new Withdrawer(),
+                    new Withdrawer(),
+                ]);
+            },
             transitions: [
-                { nextState: "idle", condition: () => ArmyManager.armyCount > 3 }
+                { nextState: AlphaSpawnAndSwamp.#stateName.IDLE, condition: () => ArmyManager.armyCount > 3 }
             ]
         },
     };
@@ -26,19 +32,23 @@ export class AlphaSpawnAndSwamp extends StateMachine {
     constructor() {
         super();
         Object.keys(this.#states).forEach(name => this.addState(name, this.#states[name]));
-        this.start("idle");
+        this.start(AlphaSpawnAndSwamp.#stateName.IDLE);
     }
 }
 
 export class Withdrawer extends StateMachineUnit {
+    static #stateName = { IDLE: "idle" };
     #states = {
-        "idle": {}
+        [Withdrawer.#stateName.IDLE]: {
+            update: (context) => { },
+            transitions: []
+        }
     };
 
     constructor() {
-        super([constants.MOVE]);
+        super([constants.MOVE, constants.CARRY]);
         Object.keys(this.#states).forEach(name => this.addState(name, this.#states[name]));
-        this.start("idle");
+        this.start(Withdrawer.#stateName.IDLE);
     }
 }
 

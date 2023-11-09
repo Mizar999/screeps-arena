@@ -1,15 +1,15 @@
 /**
  * @typedef {Object} State An object representing the state
- * @property {() => void} [state.enter] Initializes the state after transitioning to it
- * @property {(context: Object) => void} state.update Processes the state logic on every update
- * @property {() => void} [state.exit] Gets called before transitioning away from this state
- * @property {{nextState: string, condition: () => boolean}[]} state.transitions Defines all possible transitions for this state and their corresponding conditions
+ * @property {string} State.name The name of the state
+ * @property {() => void} [State.enter] Initializes the state after transitioning to it
+ * @property {(context: Object) => void} State.update Processes the state logic on every update
+ * @property {() => void} [State.exit] Gets called before transitioning away from this state
+ * @property {{nextState: string, condition: () => boolean}[]} State.transitions Defines all possible transitions for this state and their corresponding conditions
  */
 
 export class StateMachine {
     #states;
     /** @type {State} */ #currentState;
-    /** @type {string} */ #currentStateName;
 
     constructor(debug = true) {
         this.debug = debug;
@@ -17,11 +17,10 @@ export class StateMachine {
     }
 
     /**
-     * @param {string} name Name of the state
      * @param {State} state An object representing the state
      */
-    addState(name, state) {
-        this.#states[name] = state;
+    addState(state) {
+        this.#states[state.name] = state;
     }
 
     /**
@@ -33,7 +32,6 @@ export class StateMachine {
         }
         this.#currentState = this.#states[initialState];
         this.#currentState.enter();
-        this.#currentStateName = initialState;
     }
 
     /**
@@ -48,7 +46,7 @@ export class StateMachine {
         for (let transition of this.#currentState.transitions) {
             if (transition.condition()) {
                 if (this.debug) {
-                    console.log(this.constructor.name, "transitions from", this.#currentStateName, "to", transition.nextState);
+                    console.log(this.constructor.name, "transitions from", this.#currentState.name, "to", transition.nextState);
                 }
 
                 if (typeof this.#currentState.exit === "function") {
@@ -56,7 +54,6 @@ export class StateMachine {
                 }
 
                 this.#currentState = this.#states[transition.nextState];
-                this.#currentStateName = transition.nextState;
                 if (typeof this.#currentState.enter === "function") {
                     this.#currentState.enter();
                 }

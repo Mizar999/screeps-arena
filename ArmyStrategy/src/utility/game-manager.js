@@ -4,12 +4,12 @@ import * as constants from "game/constants";
 
 export class GameManager {
     /** @type {prototypes.Creep[]} */ static myCreeps;
-    static myDamagedCreeps;
-    static mySpawn;
-    static enemies;
-    static enemySpawn;
-    static containes;
-    static sources;
+    /** @type {prototypes.Creep[]} */ static myDamagedCreeps;
+    /** @type {prototypes.StructureSpawn} */ static mySpawn;
+    /** @type {prototypes.Creep[]} */ static enemies;
+    /** @type {prototypes.StructureSpawn} */ static enemySpawn;
+    /** @type {prototypes.StructureContainer[]} */ static containers;
+    /** @type {prototypes.Source[]} */ static sources;
 
     static updateCache() {
         this.myCreeps = [];
@@ -43,5 +43,13 @@ export class GameManager {
 
     static getCreeps(filter) {
         return utils.getObjectsByPrototype(prototypes.Creep).filter(filter);
+    }
+
+    static getEnemyWithRange(creep) {
+        const result = { enemy: utils.findClosestByRange(creep, GameManager.enemies), range: -1 };
+        if (result.enemy) {
+            result.range = utils.getRange(creep, result.enemy);
+        }
+        return result;
     }
 }

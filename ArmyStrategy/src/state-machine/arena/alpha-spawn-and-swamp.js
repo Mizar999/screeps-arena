@@ -1,6 +1,7 @@
 import * as utils from "game/utils";
 import * as prototypes from "game/prototypes";
 import * as constants from "game/constants";
+import * as pathFinder from "game/path-finder";
 import { } from "../../utility/creep-extension";
 import { GameManager } from "../../utility/game-manager";
 import { ArmyManager } from "../../utility/army-manager";
@@ -42,41 +43,37 @@ export class AlphaSpawnAndSwamp extends StateMachine {
 
 export class Withdrawer extends StateMachineUnit {
     /** @type {prototypes.Creep} */ #creep;
-    /** @type {prototypes.StructureContainer} */ #targetContainer;
+    #fleePosition;
+    static #minRange = 5;
 
     static #stateName = {
-        IDLE: "idle",
         COLLECT_ENERGY: "collectEnergy",
         TRANSFER_ENERGY: "transferEnergy",
+        FLEE: "flee",
     };
 
     #states = [
         {
-            name: Withdrawer.#stateName.IDLE,
-            update: (context) => {
-                this.#creep = context.creep;
-                this.#targetContainer = utils.findClosestByPath(GameManager.mySpawn, GameManager.containers, { maxCost: 50 });
-            },
-            transitions: [
-                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => this.#targetContainer && this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 }
-            ]
-        },
-        {
             name: Withdrawer.#stateName.COLLECT_ENERGY,
             update: (context) => {
                 this.#creep = context.creep;
-                if (this.#creep && this.#targetContainer) {
-                    if (this.#creep.withdraw(this.#targetContainer, constants.RESOURCE_ENERGY) !== constants.OK) {
-                        this.#creep.moveTo(this.#targetContainer);
+                const container = utils.findClosestByPath(GameManager.mySpawn, GameManager.containers, { maxCost: 50 });
+                if (this.#creep && container) {
+                    if (this.#creep.withdraw(container, constants.RESOURCE_ENERGY) !== constants.OK) {
+                        this.#creep.moveTo(container);
                     }
                 }
             },
-            exit: () => {
-                this.#targetContainer = undefined;
-            },
             transitions: [
+                {
+                    nextState: Withdrawer.#stateName.FLEE, condition: () => {
+                        if (this.#creep) {
+                            const result = GameManager.getEnemyWithRange(this.#creep);
+                            return result.enemy && result.range < Withdrawer.#minRange;
+                        }
+                    }
+                },
                 { nextState: Withdrawer.#stateName.TRANSFER_ENERGY, condition: () => this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) > 0 },
-                { nextState: Withdrawer.#stateName.IDLE, condition: () => !this.#targetContainer },
             ]
         },
         {
@@ -91,15 +88,46 @@ export class Withdrawer extends StateMachineUnit {
                 }
             },
             transitions: [
-                { nextState: Withdrawer.#stateName.IDLE, condition: () => !GameManager.mySpawn || this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 },
+                {
+                    nextState: Withdrawer.#stateName.FLEE, condition: () => {
+                        if (this.#creep) {
+                            const result = GameManager.getEnemyWithRange(this.#creep);
+                            return result.enemy && result.range < Withdrawer.#minRange;
+                        }
+                    }
+                },
+                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 },
+            ]
+        },
+        {
+            name: Withdrawer.#stateName.FLEE,
+            update: (context) => {
+                this.#creep = context.creep;
+                if (this.#creep) {
+                    const result = GameManager.getEnemyWithRange(this.#creep);
+                    if (result.enemy && result.range < Withdrawer.#minRange) {
+                        this.#fleePosition = pathFinder.searchPath(this.#creep, { x: result.enemy.x, y: result.enemy.y, range: Withdrawer.#minRange }, { flee: true })[0];
+                        if (this.#fleePosition) {
+                            this.#creep.moveTo(this.#fleePosition);
+                        }
+                    }
+                }
+            },
+            transitions: [
+                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => !this.#fleePosition && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 },
+                { nextState: Withdrawer.#stateName.TRANSFER_ENERGY, condition: () => !this.#fleePosition && this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) > 0 },
             ]
         },
     ];
 
+    #getEnemyWithRange(creep) {
+        const enemy = utils.findClosestByRange(creep, GameManager.enemies);
+    }
+
     constructor() {
         super([constants.MOVE, constants.MOVE, constants.MOVE, constants.CARRY, constants.CARRY, constants.CARRY]);
         this.addStates(this.#states);
-        this.start(Withdrawer.#stateName.IDLE);
+        this.start(Withdrawer.#stateName.COLLECT_ENERGY);
     }
 }
 

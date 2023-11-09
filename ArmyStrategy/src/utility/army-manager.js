@@ -4,20 +4,20 @@ import { } from "./creep-extension";
 import * as prototypes from "game/prototypes";
 
 export class ArmyManager {
-    /** @type {Object.<number, {units: StateMachineUnit[], max: number, created: number, completed: boolean, destroyed: boolean}>} */
+    /** @type {Object.<number, {unitsToSpawn: StateMachineUnit[], max: number, created: number, completed: boolean, destroyed: boolean}>} */
     static #armies = {};
     static #nextId = 0;
     static debug = true;
 
     /**
-     * @param {StateMachineUnit[]} units All units that form an army
+     * @param {StateMachineUnit[]} unitsToSpawn All units that form an army
      * @returns {number} New army identifier
      */
-    static addArmy(units) {
+    static addArmy(unitsToSpawn) {
         const id = this.#nextId++;
         this.#armies[id] = {
-            units: units,
-            max: units.length,
+            unitsToSpawn: unitsToSpawn,
+            max: unitsToSpawn.length,
             created: 0,
             completed: false,
             destroyed: false
@@ -36,11 +36,11 @@ export class ArmyManager {
         // TODO support multiple spawn structures
         const spawn = GameManager.mySpawn;
         if (spawn && !spawn.spawning) {
-            for (let id of Object.keys(this.#armies).filter(id => !this.#armies[id].units.length)) {
-                const units = this.#armies[id].units;
-                const creep = spawn.spawnCreep(units[0].parts).object;
+            for (let id of Object.keys(this.#armies).filter(id => !this.#armies[id].unitsToSpawn.length)) {
+                const unitsToSpawn = this.#armies[id].unitsToSpawn;
+                const creep = spawn.spawnCreep(unitsToSpawn[0].parts).object;
                 if (creep) {
-                    creep["data"] = { army: id, stateMachine: units.shift() };
+                    creep["data"] = { army: id, stateMachine: unitsToSpawn.shift() };
                     this.#armies[id].armyData.created++;
                 }
                 return;
@@ -48,7 +48,7 @@ export class ArmyManager {
         }
     }
 
-    static applyStrategies() {
+    static update() {
         const creeps = GameManager.myCreeps;
         let /** @type {prototypes.Creep[]} */ tempUnits;
         let /** @type {boolean} */ isSpawning;

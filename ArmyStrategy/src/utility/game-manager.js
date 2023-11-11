@@ -1,8 +1,17 @@
 import * as utils from "game/utils";
 import * as prototypes from "game/prototypes";
 import * as constants from "game/constants";
+import * as visual from "game/visual";
 
 export class GameManager {
+    static #visual = new visual.Visual(0, true);
+    /** @type {{message: string, position: prototypes.Position}[]} */ static #messages = [];
+    static #visualStyle = {
+        font: 0.25,
+        opacity: 0.6,
+        stroke: "#000000"
+    };
+
     /** @type {prototypes.Creep[]} */ static myCreeps;
     /** @type {prototypes.Creep[]} */ static myDamagedCreeps;
     /** @type {prototypes.StructureSpawn} */ static mySpawn;
@@ -51,5 +60,19 @@ export class GameManager {
             result.range = utils.getRange(creep, result.enemy);
         }
         return result;
+    }
+
+    static addMessage(message, position) {
+        this.#messages.push({ message: message, position: { x: position.x, y: position.y - 0.5 } });
+    }
+
+    static drawMessages() {
+        this.#visual.clear();
+        this.#messages.forEach(message => this.#visual.text(
+            message.message,
+            message.position,
+            this.#visualStyle
+        ));
+        this.#messages = [];
     }
 }

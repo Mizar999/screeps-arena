@@ -9,7 +9,7 @@
 
 export class StateMachine {
     #states;
-    /** @type {State} */ #currentState;
+    /** @type {State} */ _currentState;
 
     constructor(debug = true) {
         this.debug = debug;
@@ -34,9 +34,9 @@ export class StateMachine {
         if (this.debug) {
             console.log("starting", this.constructor.name, "in state", initialState);
         }
-        this.#currentState = this.#states[initialState];
-        if (typeof this.#currentState.enter === "function") {
-            this.#currentState.enter();
+        this._currentState = this.#states[initialState];
+        if (typeof this._currentState.enter === "function") {
+            this._currentState.enter();
         }
     }
 
@@ -45,23 +45,23 @@ export class StateMachine {
      */
     update(context = {}) {
         this.#checkTransition();
-        this.#currentState.update(context);
+        this._currentState.update(context);
     }
 
     #checkTransition() {
-        for (let transition of this.#currentState.transitions) {
+        for (let transition of this._currentState.transitions) {
             if (transition.condition()) {
                 if (this.debug) {
-                    console.log(this.constructor.name, "transitions from", this.#currentState.name, "to", transition.nextState);
+                    console.log(this.constructor.name, "transitions from", this._currentState.name, "to", transition.nextState);
                 }
 
-                if (typeof this.#currentState.exit === "function") {
-                    this.#currentState.exit();
+                if (typeof this._currentState.exit === "function") {
+                    this._currentState.exit();
                 }
 
-                this.#currentState = this.#states[transition.nextState];
-                if (typeof this.#currentState.enter === "function") {
-                    this.#currentState.enter();
+                this._currentState = this.#states[transition.nextState];
+                if (typeof this._currentState.enter === "function") {
+                    this._currentState.enter();
                 }
                 return;
             }

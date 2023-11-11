@@ -39,6 +39,16 @@ export class AlphaSpawnAndSwamp extends StateMachine {
         this.addStates(this.#states);
         this.start(AlphaSpawnAndSwamp.#stateName.SPAWN_ENERGY_COLLECTOR);
     }
+
+    /**
+     * @param {Object} [context] Optional object representing a context
+     */
+    update(context) {
+        super.update(context);
+        if (this.update) {
+            GameManager.addMessage(this._currentState.name, GameManager.mySpawn);
+        }
+    }
 }
 
 export class Withdrawer extends StateMachineUnit {
@@ -58,11 +68,14 @@ export class Withdrawer extends StateMachineUnit {
             update: (context) => {
                 this.#creep = context.creep;
                 const container = utils.findClosestByPath(GameManager.mySpawn, GameManager.containers, { maxCost: 50 });
-                if (this.#creep && container) {
-                    if (this.#creep.withdraw(container, constants.RESOURCE_ENERGY) !== constants.OK) {
-                        this.#creep.moveTo(container);
+                if (this.#creep) {
+                    if (container) {
+                        if (this.#creep.withdraw(container, constants.RESOURCE_ENERGY) !== constants.OK) {
+                            this.#creep.moveTo(container);
+                        }
                     }
                 }
+
             },
             transitions: [
                 {
@@ -81,9 +94,11 @@ export class Withdrawer extends StateMachineUnit {
             update: (context) => {
                 this.#creep = context.creep;
                 const spawn = GameManager.mySpawn;
-                if (this.#creep && spawn) {
-                    if (this.#creep.transfer(spawn, constants.RESOURCE_ENERGY) !== constants.OK) {
-                        this.#creep.moveTo(spawn);
+                if (this.#creep) {
+                    if (spawn) {
+                        if (this.#creep.transfer(spawn, constants.RESOURCE_ENERGY) !== constants.OK) {
+                            this.#creep.moveTo(spawn);
+                        }
                     }
                 }
             },
@@ -120,14 +135,20 @@ export class Withdrawer extends StateMachineUnit {
         },
     ];
 
-    #getEnemyWithRange(creep) {
-        const enemy = utils.findClosestByRange(creep, GameManager.enemies);
-    }
-
     constructor() {
         super([constants.MOVE, constants.MOVE, constants.MOVE, constants.CARRY, constants.CARRY, constants.CARRY]);
         this.addStates(this.#states);
         this.start(Withdrawer.#stateName.COLLECT_ENERGY);
+    }
+
+    /**
+     * @param {Object} [context] Optional object representing a context
+     */
+    update(context) {
+        super.update(context);
+        if (this.update && this.#creep) {
+            GameManager.addMessage(this.#creep.id + ": " + this._currentState.name, this.#creep);
+        }
     }
 }
 

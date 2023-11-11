@@ -15,4 +15,6 @@ export function loop() {
     try { arenaStrategyMachine.update() } catch (e) { console.log(e); }
     try { ArmyManager.update(); } catch (e) { console.log(e); }
     try { ArmyManager.spawn(); } catch (e) { console.log(e); }
+
+    GameManager.drawMessages();
 }

@@ -54,7 +54,7 @@ export class AlphaSpawnAndSwamp extends StateMachine {
 export class Withdrawer extends StateMachineUnit {
     /** @type {prototypes.Creep} */ #creep;
     #fleePosition;
-    static #minRange = 5;
+    static #minRange = 4;
 
     static #stateName = {
         COLLECT_ENERGY: "collectEnergy",
@@ -119,17 +119,21 @@ export class Withdrawer extends StateMachineUnit {
             update: (context) => {
                 this.#creep = context.creep;
                 if (this.#creep) {
-                    const result = GameManager.getEnemyWithRange(this.#creep);
-                    if (result.enemy && result.range < Withdrawer.#minRange) {
-                        this.#fleePosition = pathFinder.searchPath(this.#creep, { x: result.enemy.x, y: result.enemy.y, range: Withdrawer.#minRange }, { flee: true })[0];
-                        if (this.#fleePosition) {
+                    const goals = utils.findInRange(this.#creep, GameManager.enemies, Withdrawer.#minRange).map(enemy => { return { pos: { x: enemy.x, y: enemy.y }, range: Withdrawer.#minRange } });
+                    if (goals.length) {
+                        const searchResult = pathFinder.searchPath(this.#creep, goals, { flee: true });
+                        if (!searchResult.incomplete && searchResult.path.length) {
+                            this.#fleePosition = searchResult.path[0];
                             this.#creep.moveTo(this.#fleePosition);
                         }
                     }
                 }
             },
+            exit: () => {
+                this.#fleePosition = undefined;
+            },
             transitions: [
-                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => !this.#fleePosition && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 },
+                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => !this.#fleePosition && this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 },
                 { nextState: Withdrawer.#stateName.TRANSFER_ENERGY, condition: () => !this.#fleePosition && this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) > 0 },
             ]
         },

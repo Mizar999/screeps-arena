@@ -73,26 +73,19 @@ export class ArmyManager {
                 armyData.destroyed = tempUnits.length <= 0;
             }
 
-            // TODO no need for repair?
-            // if (tempUnits.length && !armyData.destroyed) {
-            //     const unitIds = tempUnits.map(unit => unit.id);
-            //     let int;
-            //     Object.keys(armyData.army.state).forEach(key => {
-            //         int = parseInt(key);
-            //         if (!isNaN(int) && !unitIds.includes(int)) {
-            //             delete armyData.army.state[key];
-            //         }
-            //     });
-            // }
-
-            const metaData = { creep: undefined, armyCreeps: tempUnits, completed: armyData.completed, destroyed: armyData.destroyed, created: armyData.created, max: armyData.max, alive: tempUnits.length };
+            const metaData = {
+                creep: undefined,
+                armyCreeps: tempUnits,
+                completed: armyData.completed,
+                destroyed: armyData.destroyed,
+                created: armyData.created,
+                max: armyData.max,
+                alive: tempUnits.length
+            };
             tempUnits.forEach(unit => {
                 metaData.creep = unit;
                 unit["data"].stateMachine.update(metaData)
             });
-            if (this.debug) {
-                // this.#printDebug(id, armyData.army.state, metaData); // TODO repair
-            }
         }
     }
 

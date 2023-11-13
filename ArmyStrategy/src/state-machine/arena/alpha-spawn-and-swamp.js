@@ -76,6 +76,24 @@ export class AlphaSpawnAndSwamp extends StateMachine {
             GameManager.addMessage(this._currentState.name, GameManager.mySpawn);
         }
     }
+
+    static armyHasGathered(context, gatheringPoint, gatheringRange) {
+        if (context.completed) {
+            let maxDistance = -1;
+            let distance = 0;
+            for (let creep of context.armyCreeps) {
+                distance = utils.getRange(creep, gatheringPoint);
+                if (distance >= gatheringRange) {
+                    return false;
+                }
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                }
+            }
+            return maxDistance > 0 && maxDistance < gatheringRange;
+        }
+        return false;
+    }
 }
 
 export class Withdrawer extends StateMachineUnit {
@@ -211,7 +229,13 @@ export class MeleeAttacker extends StateMachineUnit {
             },
             transitions: [
                 { nextState: MeleeAttacker.#stateName.ATTACK_ENEMY, condition: () => this.#findAttackTarget() },
-                { nextState: MeleeAttacker.#stateName.ATTACK_OBJECTIVE, condition: (context) => this.#armyHasGathered(context) },
+                {
+                    nextState: MeleeAttacker.#stateName.ATTACK_OBJECTIVE,
+                    condition: (context) => {
+                        this.#hasGathered = AlphaSpawnAndSwamp.armyHasGathered(context, this.#gatheringPoint, MeleeAttacker.#gatheringRange);
+                        return this.#hasGathered;
+                    }
+                },
             ]
         },
         {
@@ -261,24 +285,6 @@ export class MeleeAttacker extends StateMachineUnit {
         if (this.debug && this._creep) {
             GameManager.addMessage(this._creep.id + ": " + this._currentState.name, this._creep);
         }
-    }
-
-    #armyHasGathered(context) {
-        if (!this.#hasGathered && context.completed) {
-            let maxDistance = -1;
-            let distance = 0;
-            for (let creep of context.armyCreeps) {
-                distance = utils.getRange(creep, this.#gatheringPoint);
-                if (distance >= MeleeAttacker.#gatheringRange) {
-                    return false;
-                }
-                if (distance > maxDistance) {
-                    maxDistance = distance;
-                }
-            }
-            this.#hasGathered = maxDistance > 0 && maxDistance < MeleeAttacker.#gatheringRange;
-        }
-        return this.#hasGathered;
     }
 
     #findAttackTarget() {

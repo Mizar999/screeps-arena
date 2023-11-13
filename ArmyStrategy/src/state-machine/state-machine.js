@@ -4,7 +4,7 @@
  * @property {() => void} [State.enter] Initializes the state after transitioning to it
  * @property {(context: Object) => void} State.update Processes the state logic on every update
  * @property {() => void} [State.exit] Gets called before transitioning away from this state
- * @property {{nextState: string, condition: () => boolean}[]} State.transitions Defines all possible transitions for this state and their corresponding conditions
+ * @property {{nextState: string, condition: (context: Object) => boolean}[]} State.transitions Defines all possible transitions for this state and their corresponding conditions
  */
 
 export class StateMachine {
@@ -44,13 +44,13 @@ export class StateMachine {
      * @param {Object} [context] Optional object representing a context
      */
     update(context = {}) {
-        this.#checkTransition();
+        this.#checkTransition(context);
         this._currentState.update(context);
     }
 
-    #checkTransition() {
+    #checkTransition(context) {
         for (let transition of this._currentState.transitions) {
-            if (transition.condition()) {
+            if (transition.condition(context)) {
                 if (this.debug) {
                     console.log(this.constructor.name, "transitions from", this._currentState.name, "to", transition.nextState);
                 }

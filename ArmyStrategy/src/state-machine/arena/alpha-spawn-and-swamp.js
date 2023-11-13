@@ -79,7 +79,6 @@ export class AlphaSpawnAndSwamp extends StateMachine {
 }
 
 export class Withdrawer extends StateMachineUnit {
-    /** @type {prototypes.Creep} */ #creep;
     #fleePosition;
     #enemiesInRange;
     static #minRange = 4;
@@ -94,49 +93,49 @@ export class Withdrawer extends StateMachineUnit {
         {
             name: Withdrawer.#stateName.COLLECT_ENERGY,
             update: (context) => {
-                this.#creep = context.creep;
-                const container = utils.findClosestByPath(GameManager.mySpawn, GameManager.containers, { maxCost: 300 });
-                if (this.#creep) {
-                    if (container) {
-                        if (this.#creep.withdraw(container, constants.RESOURCE_ENERGY) !== constants.OK) {
-                            this.#creep.moveTo(container);
-                        }
+                if (!this._creep) {
+                    if (context.creep) {
+                        this._creep = context.creep;
+                    } else {
+                        return;
                     }
                 }
 
+                const container = utils.findClosestByPath(GameManager.mySpawn, GameManager.containers, { maxCost: 300 });
+                if (container) {
+                    if (this._creep.withdraw(container, constants.RESOURCE_ENERGY) !== constants.OK) {
+                        this._creep.moveTo(container);
+                    }
+                }
             },
             transitions: [
                 { nextState: Withdrawer.#stateName.FLEE, condition: () => this.#findEnemiesInRange() },
-                { nextState: Withdrawer.#stateName.TRANSFER_ENERGY, condition: () => this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) > 0 },
+                { nextState: Withdrawer.#stateName.TRANSFER_ENERGY, condition: () => this._creep && this._creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) > 0 },
             ]
         },
         {
             name: Withdrawer.#stateName.TRANSFER_ENERGY,
             update: (context) => {
-                this.#creep = context.creep;
                 const spawn = GameManager.mySpawn;
-                if (this.#creep) {
-                    if (spawn) {
-                        if (this.#creep.transfer(spawn, constants.RESOURCE_ENERGY) !== constants.OK) {
-                            this.#creep.moveTo(spawn);
-                        }
+                if (spawn) {
+                    if (this._creep.transfer(spawn, constants.RESOURCE_ENERGY) !== constants.OK) {
+                        this._creep.moveTo(spawn);
                     }
                 }
             },
             transitions: [
                 { nextState: Withdrawer.#stateName.FLEE, condition: () => this.#findEnemiesInRange() },
-                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 },
+                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => this._creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 },
             ]
         },
         {
             name: Withdrawer.#stateName.FLEE,
             update: (context) => {
-                this.#creep = context.creep;
-                if (this.#creep && this.#enemiesInRange.length) {
-                    const searchResult = pathFinder.searchPath(this.#creep, this.#enemiesInRange, { flee: true });
+                if (this.#enemiesInRange.length) {
+                    const searchResult = pathFinder.searchPath(this._creep, this.#enemiesInRange, { flee: true });
                     if (!searchResult.incomplete && searchResult.path.length) {
                         this.#fleePosition = searchResult.path[0];
-                        this.#creep.moveTo(this.#fleePosition);
+                        this._creep.moveTo(this.#fleePosition);
                     }
                 }
             },
@@ -144,8 +143,8 @@ export class Withdrawer extends StateMachineUnit {
                 this.#fleePosition = undefined;
             },
             transitions: [
-                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 && !this.#findEnemiesInRange() },
-                { nextState: Withdrawer.#stateName.TRANSFER_ENERGY, condition: () => this.#creep && this.#creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) > 0 && !this.#findEnemiesInRange() },
+                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => this._creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) <= 0 && !this.#findEnemiesInRange() },
+                { nextState: Withdrawer.#stateName.TRANSFER_ENERGY, condition: () => this._creep.store.getUsedCapacity(constants.RESOURCE_ENERGY) > 0 && !this.#findEnemiesInRange() },
             ]
         },
     ];
@@ -161,14 +160,14 @@ export class Withdrawer extends StateMachineUnit {
      */
     update(context) {
         super.update(context);
-        if (this.debug && this.#creep) {
-            GameManager.addMessage(this.#creep.id + ": " + this._currentState.name, this.#creep);
+        if (this.debug && this._creep) {
+            GameManager.addMessage(this._creep.id + ": " + this._currentState.name, this._creep);
         }
     }
 
     #findEnemiesInRange() {
-        if (this.#creep) {
-            this.#enemiesInRange = utils.findInRange(this.#creep, GameManager.enemies, Withdrawer.#minRange).map(enemy => { return { pos: { x: enemy.x, y: enemy.y }, range: Withdrawer.#minRange } });
+        if (this._creep) {
+            this.#enemiesInRange = utils.findInRange(this._creep, GameManager.enemies, Withdrawer.#minRange).map(enemy => { return { pos: { x: enemy.x, y: enemy.y }, range: Withdrawer.#minRange } });
             return this.#enemiesInRange && this.#enemiesInRange.length;
         }
         return false;
@@ -176,7 +175,6 @@ export class Withdrawer extends StateMachineUnit {
 }
 
 export class MeleeAttacker extends StateMachineUnit {
-    /** @type {prototypes.Creep} */ #creep;
     #gatheringPoint;
     #attackTarget;
     #hasGathered = false;
@@ -199,25 +197,29 @@ export class MeleeAttacker extends StateMachineUnit {
                 }
             },
             update: (context) => {
-                this.#creep = context.creep;
-                if (this.#creep) {
-                    this.#creep.moveTo(this.#gatheringPoint);
-                    if (context.completed) {
-                        this.#hasGathered = this.#armyHasGathered(context);
+                if (!this._creep) {
+                    if (context.creep) {
+                        this._creep = context.creep;
+                    } else {
+                        return;
                     }
+                }
+
+                if (this._creep) {
+                    this._creep.moveTo(this.#gatheringPoint);
                 }
             },
             transitions: [
                 { nextState: MeleeAttacker.#stateName.ATTACK_ENEMY, condition: () => this.#findAttackTarget() },
-                { nextState: MeleeAttacker.#stateName.ATTACK_OBJECTIVE, condition: () => this.#hasGathered },
+                { nextState: MeleeAttacker.#stateName.ATTACK_OBJECTIVE, condition: (context) => this.#armyHasGathered(context) },
             ]
         },
         {
             name: MeleeAttacker.#stateName.ATTACK_OBJECTIVE,
             update: (context) => {
                 const enemySpawn = GameManager.enemySpawn;
-                if (this.#creep && this.#creep.attack(enemySpawn) !== constants.OK) {
-                    this.#creep.moveTo(enemySpawn);
+                if (this._creep.attack(enemySpawn) !== constants.OK) {
+                    this._creep.moveTo(enemySpawn);
                 }
             },
             transitions: [
@@ -227,9 +229,9 @@ export class MeleeAttacker extends StateMachineUnit {
         {
             name: MeleeAttacker.#stateName.ATTACK_ENEMY,
             update: (context) => {
-                if (this.#creep && this.#attackTarget) {
-                    if (this.#creep.attack(this.#attackTarget.enemy) !== constants.OK) {
-                        this.#creep.moveTo(this.#attackTarget.enemy);
+                if (this.#attackTarget) {
+                    if (this._creep.attack(this.#attackTarget.enemy) !== constants.OK) {
+                        this._creep.moveTo(this.#attackTarget.enemy);
                     }
                 }
             },
@@ -256,14 +258,14 @@ export class MeleeAttacker extends StateMachineUnit {
      */
     update(context) {
         super.update(context);
-        if (this.debug && this.#creep) {
-            GameManager.addMessage(this.#creep.id + ": " + this._currentState.name, this.#creep);
+        if (this.debug && this._creep) {
+            GameManager.addMessage(this._creep.id + ": " + this._currentState.name, this._creep);
         }
     }
 
     #armyHasGathered(context) {
-        let maxDistance = -1;
-        if (context.completed) {
+        if (!this.#hasGathered && context.completed) {
+            let maxDistance = -1;
             let distance = 0;
             for (let creep of context.armyCreeps) {
                 distance = utils.getRange(creep, this.#gatheringPoint);
@@ -274,13 +276,14 @@ export class MeleeAttacker extends StateMachineUnit {
                     maxDistance = distance;
                 }
             }
+            this.#hasGathered = maxDistance > 0 && maxDistance < MeleeAttacker.#gatheringRange;
         }
-        return maxDistance > 0 && maxDistance < MeleeAttacker.#gatheringRange;
+        return this.#hasGathered;
     }
 
     #findAttackTarget() {
-        if (this.#creep) {
-            this.#attackTarget = GameManager.getEnemyWithRange(this.#creep);
+        if (this._creep) {
+            this.#attackTarget = GameManager.getEnemyWithRange(this._creep);
             return this.#attackTarget.enemy && this.#attackTarget.range <= MeleeAttacker.#attackRange;
         }
         return false;

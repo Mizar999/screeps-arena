@@ -174,16 +174,6 @@ export class Withdrawer extends StateMachineUnit {
         this.start(Withdrawer.#stateName.COLLECT_ENERGY);
     }
 
-    /**
-     * @param {Object} [context] Optional object representing a context
-     */
-    update(context) {
-        super.update(context);
-        if (this.debug && this._creep) {
-            GameManager.addMessage(this._creep.id + ": " + this._currentState.name, this._creep);
-        }
-    }
-
     #findEnemiesInRange() {
         if (this._creep) {
             this.#enemiesInRange = utils.findInRange(this._creep, GameManager.enemies, Withdrawer.#fleeRange).map(enemy => { return { pos: { x: enemy.x, y: enemy.y }, range: Withdrawer.#fleeRange } });
@@ -276,16 +266,6 @@ export class MeleeAttacker extends StateMachineUnit {
 
         this.addStates(this.#states);
         this.start(MeleeAttacker.#stateName.GATHERING);
-    }
-
-    /**
-     * @param {Object} [context] Optional object representing a context
-     */
-    update(context) {
-        super.update(context);
-        if (this.debug && this._creep) {
-            GameManager.addMessage(this._creep.id + ": " + this._currentState.name, this._creep);
-        }
     }
 
     #findAttackTarget() {

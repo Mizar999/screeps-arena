@@ -18,13 +18,17 @@ export class Withdrawer extends StateMachineUnit {
     #states = [
         {
             name: Withdrawer.#stateName.SET_CREEP,
-            update: (context) => {
-                if (context.creep) {
-                    this._creep = context.creep;
-                }
-            },
+            update: (context) => { },
             transitions: [
-                { nextState: Withdrawer.#stateName.COLLECT_ENERGY, condition: () => this._creep !== undefined }
+                {
+                    nextState: Withdrawer.#stateName.COLLECT_ENERGY,
+                    condition: (context) => {
+                        if (context.creep) {
+                            this._creep = context.creep;
+                        }
+                        return this._creep !== undefined;
+                    }
+                },
             ]
         },
         {

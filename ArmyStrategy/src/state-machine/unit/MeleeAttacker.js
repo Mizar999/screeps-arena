@@ -21,13 +21,17 @@ export class MeleeAttacker extends StateMachineUnit {
     #states = [
         {
             name: MeleeAttacker.#stateName.SET_CREEP,
-            update: (context) => {
-                if (context.creep) {
-                    this._creep = context.creep;
-                }
-            },
+            update: (context) => { },
             transitions: [
-                { nextState: MeleeAttacker.#stateName.GATHERING, condition: () => this._creep !== undefined }
+                {
+                    nextState: MeleeAttacker.#stateName.GATHERING,
+                    condition: (context) => {
+                        if (context.creep) {
+                            this._creep = context.creep;
+                        }
+                        return this._creep !== undefined;
+                    }
+                },
             ]
         },
         {

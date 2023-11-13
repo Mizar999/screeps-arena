@@ -1,7 +1,8 @@
+import * as prototypes from "game/prototypes";
+import * as utils from "game/utils";
 import { GameManager } from "./game-manager";
 import { StateMachineUnit } from "../state-machine/state-machine-unit";
 import { } from "./creep-extension";
-import * as prototypes from "game/prototypes";
 
 export class ArmyManager {
     /** @type {Object.<number, {unitsToSpawn: StateMachineUnit[], max: number, created: number, completed: boolean, destroyed: boolean}>} */
@@ -112,5 +113,29 @@ export class ArmyManager {
      */
     static armyExists(id) {
         return id in this.#armies;
+    }
+
+    /**
+     * @param {{completed: boolean, armyCreeps: prototypes.Creep[]}} context 
+     * @param {prototypes.Position} gatheringPoint 
+     * @param {number} gatheringRange 
+     * @returns {boolean}
+     */
+    static armyHasGathered(context, gatheringPoint, gatheringRange) {
+        if (context.completed) {
+            let maxDistance = -1;
+            let distance = 0;
+            for (let creep of context.armyCreeps) {
+                distance = utils.getRange(creep, gatheringPoint);
+                if (distance >= gatheringRange) {
+                    return false;
+                }
+                if (distance > maxDistance) {
+                    maxDistance = distance;
+                }
+            }
+            return maxDistance > 0 && maxDistance < gatheringRange;
+        }
+        return false;
     }
 }

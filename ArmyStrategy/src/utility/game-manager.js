@@ -67,6 +67,17 @@ export class GameManager {
         return result;
     }
 
+    /**
+     * 
+     * @param {prototypes.Position} position 
+     * @param {prototypes.Creep[]} creeps 
+     * @param {number} range 
+     * @returns {{pos: {x:number, y:number}, range: number}[]}
+     */
+    static findCreepsInRange(position, creeps, range) {
+        return utils.findInRange(position, creeps, range).map(enemy => { return { pos: { x: enemy.x, y: enemy.y }, range: range } });
+    }
+
     static addMessage(message, position) {
         this.#messages.push({ message: message, position: { x: position.x, y: position.y - 0.5 } });
     }

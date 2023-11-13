@@ -99,7 +99,8 @@ export class AlphaSpawnAndSwamp extends StateMachine {
 export class Withdrawer extends StateMachineUnit {
     #fleePosition;
     #enemiesInRange;
-    static #minRange = 4;
+    static #fleeRange = 5;
+    static #containerRange = 50;
 
     static #stateName = {
         COLLECT_ENERGY: "collectEnergy",
@@ -119,10 +120,10 @@ export class Withdrawer extends StateMachineUnit {
                     }
                 }
 
-                const container = utils.findClosestByPath(GameManager.mySpawn, GameManager.containers, { maxCost: 300 });
-                if (container) {
-                    if (this._creep.withdraw(container, constants.RESOURCE_ENERGY) !== constants.OK) {
-                        this._creep.moveTo(container);
+                const result = GameManager.getPositionsWithRange(GameManager.mySpawn, GameManager.containers);
+                if (result.target && result.range <= Withdrawer.#containerRange) {
+                    if (this._creep.withdraw(result.target, constants.RESOURCE_ENERGY) !== constants.OK) {
+                        this._creep.moveTo(result.target);
                     }
                 }
             },
@@ -185,7 +186,7 @@ export class Withdrawer extends StateMachineUnit {
 
     #findEnemiesInRange() {
         if (this._creep) {
-            this.#enemiesInRange = utils.findInRange(this._creep, GameManager.enemies, Withdrawer.#minRange).map(enemy => { return { pos: { x: enemy.x, y: enemy.y }, range: Withdrawer.#minRange } });
+            this.#enemiesInRange = utils.findInRange(this._creep, GameManager.enemies, Withdrawer.#fleeRange).map(enemy => { return { pos: { x: enemy.x, y: enemy.y }, range: Withdrawer.#fleeRange } });
             return this.#enemiesInRange && this.#enemiesInRange.length;
         }
         return false;
@@ -254,8 +255,8 @@ export class MeleeAttacker extends StateMachineUnit {
             name: MeleeAttacker.#stateName.ATTACK_ENEMY,
             update: (context) => {
                 if (this.#attackTarget) {
-                    if (this._creep.attack(this.#attackTarget.enemy) !== constants.OK) {
-                        this._creep.moveTo(this.#attackTarget.enemy);
+                    if (this._creep.attack(this.#attackTarget.target) !== constants.OK) {
+                        this._creep.moveTo(this.#attackTarget.target);
                     }
                 }
             },
@@ -289,8 +290,8 @@ export class MeleeAttacker extends StateMachineUnit {
 
     #findAttackTarget() {
         if (this._creep) {
-            this.#attackTarget = GameManager.getEnemyWithRange(this._creep);
-            return this.#attackTarget.enemy && this.#attackTarget.range <= MeleeAttacker.#attackRange;
+            this.#attackTarget = GameManager.getPositionsWithRange(this._creep, GameManager.enemies);
+            return this.#attackTarget.target && this.#attackTarget.range <= MeleeAttacker.#attackRange;
         }
         return false;
     }

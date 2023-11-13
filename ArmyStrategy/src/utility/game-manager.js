@@ -54,10 +54,15 @@ export class GameManager {
         return utils.getObjectsByPrototype(prototypes.Creep).filter(filter);
     }
 
-    static getEnemyWithRange(creep) {
-        const result = { enemy: utils.findClosestByRange(creep, GameManager.enemies), range: -1 };
-        if (result.enemy) {
-            result.range = utils.getRange(creep, result.enemy);
+    /**
+     * @param {prototypes.Position} fromPos 
+     * @param {(prototypes.Creep|prototypes.StructureContainer|prototypes.Source)[]} positions 
+     * @returns {{target: any, range: number}}
+     */
+    static getPositionsWithRange(fromPos, positions) {
+        const result = { target: utils.findClosestByRange(fromPos, positions), range: -1 };
+        if (result.target) {
+            result.range = utils.getRange(fromPos, result.target);
         }
         return result;
     }

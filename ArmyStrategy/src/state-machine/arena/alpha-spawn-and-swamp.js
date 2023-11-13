@@ -180,7 +180,7 @@ export class MeleeAttacker extends StateMachineUnit {
     #gatheringPoint;
     #attackTarget;
     #hasGathered = false;
-    static #gatheringRange = 4;
+    static #gatheringRange = 2;
     static #attackRange = 4;
 
     static #stateName = {

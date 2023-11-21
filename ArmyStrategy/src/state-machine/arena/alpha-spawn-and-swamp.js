@@ -34,7 +34,7 @@ export class AlphaSpawnAndSwamp extends StateMachine {
             },
             transitions: [
                 { nextState: AlphaSpawnAndSwamp.#stateName.SPAWN_ATTACKERS, condition: () => GameManager.armyCount >= 1 },
-                { nextState: AlphaSpawnAndSwamp.#stateName.IDLE, condition: () => GameManager.armyCount >= 5 },
+                { nextState: AlphaSpawnAndSwamp.#stateName.IDLE, condition: () => GameManager.armyCount >= 6 },
             ]
         },
         {
@@ -52,7 +52,7 @@ export class AlphaSpawnAndSwamp extends StateMachine {
                 GameManager.addArmyToSpawn(attackers);
             },
             transitions: [
-                { nextState: AlphaSpawnAndSwamp.#stateName.IDLE, condition: () => GameManager.armyCount >= 12 },
+                { nextState: AlphaSpawnAndSwamp.#stateName.IDLE, condition: () => GameManager.armyCount >= 6 },
             ]
         },
         {

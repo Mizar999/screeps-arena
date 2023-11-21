@@ -4,11 +4,13 @@ import * as constants from "game/constants";
 
 prototypes.Creep.prototype["bodyPartCount"] = function (type) {
     let count = 0;
-    this.body.forEach(part => {
-        if (part.type === type) {
-            ++count;
-        }
-    });
+    if (this.exists) {
+        this.body.forEach(part => {
+            if (part.type === type) {
+                ++count;
+            }
+        });
+    }
     return count;
 }
 

@@ -1,6 +1,7 @@
 /**
  * @typedef {Object} State An object representing the state
  * @property {string} State.name The name of the state
+ * @property {boolean} [State.isInitialState] Declare this state as the initial state
  * @property {() => void} [State.enter] Initializes the state after transitioning to it
  * @property {(context: Object) => void} State.update Processes the state logic on every update
  * @property {() => void} [State.exit] Gets called before transitioning away from this state
@@ -27,14 +28,16 @@ export class StateMachine {
         }
     }
 
-    /**
-     * @param {string} initialState Name of the initial state
-     */
-    start(initialState) {
-        if (this.debug) {
-            console.log("starting", this.constructor.name, "in state", initialState);
+    start() {
+        const initialStateName = Object.keys(this.#states).find(name => this.#states[name].isInitialState);
+        if (!initialStateName) {
+            throw new Error("There is no initial state!");
         }
-        this._currentState = this.#states[initialState];
+
+        if (this.debug) {
+            console.log("starting", this.constructor.name, "in state", initialStateName);
+        }
+        this._currentState = this.#states[initialStateName];
         if (typeof this._currentState.enter === "function") {
             this._currentState.enter();
         }
